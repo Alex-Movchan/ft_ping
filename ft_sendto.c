@@ -44,7 +44,7 @@ void			ft_sendto_ipv4(void)
 	frame->icmp_cksum = 0;
 	frame->icmp_cksum = ft_get_checksum((uint16_t*)frame, data_len);
 	if (sendto(g_env->sock, buff, data_len, 0,
-			g_env->addr, g_env->salen) != data_len)
+			g_env->addr, g_env->salen) < 0)
 		ft_error("Error: sendto.");
 }
 

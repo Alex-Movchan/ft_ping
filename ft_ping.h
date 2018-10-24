@@ -18,12 +18,11 @@
 # include <netinet/ip6.h>
 # include <netinet/icmp6.h>
 
-#define FLAG_V 1
-#define FLAG_B 2
-#define FLAG_C 4
-#define FLAG_I 8
-#define FLAG_N 16
-#define FLAG_IPV6 64
+#define FLAG_V (1 << 0)
+#define FLAG_B (1 << 1)
+#define FLAG_C (1 << 2)
+#define FLAG_I (1 << 3)
+#define FLAG_IPV6 (1 << 4)
 #define SOCK_UNKNOW 0
 #define BROADCAST_ADDR ".255"
 #define SIZE_BUFF 1500
@@ -37,6 +36,7 @@ typedef struct		s_env
 {
 	char			*recv_name_buff;
 	char			*host_name;
+	char			host_addr[HOST_ADDR_SIZE];
 	struct sockaddr	*addr;
 	struct timeval	time_begin;
 	uint64_t		count_send;
@@ -49,11 +49,12 @@ typedef struct		s_env
 	unsigned int	interval;
 	int				sock;
 	int				count_packets;
+	int				count_packets_dup;
+	int				seq;
 }					env_t;
 
 extern env_t		*g_env;
 
-char				*ft_hostaddrtostr(struct sockaddr *sa, socklen_t len);
 void				ft_error(char *str);
 void				ft_usage(void);
 char				*ft_validarg(int cout, char **av, long *flag);

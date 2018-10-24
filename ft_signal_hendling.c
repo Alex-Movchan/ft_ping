@@ -22,10 +22,20 @@ static void	ft_print_statistics(void)
 	loss = (double)diff / g_env->count_send * 100;
 	ft_get_time_sub(&time_end, &g_env->time_begin);
 	finish = time_end.tv_sec * 1000.0 + time_end.tv_usec / 1000.0;
-	ft_printf("\n--- %s ping statistics ---\n%ld packets transmitted, %ld recieved, "
-				   "%.0f%% packet loss, time %.fms\nrtt min/max = %.3f/%.3f\n",
-		g_env->host_name, g_env->count_send, g_env->count_revc,
-		loss, finish, g_env->min, g_env->max);
+	if (g_env->flag & FLAG_B)
+	{
+		ft_printf("\n--- %s ping statistics ---\n%ld packets transmitted, %ld recieved, +%ld duplicates, "
+				  "%.0f%% packet loss, time %.fms\nrtt min/max = %.3f/%.3f\n",
+				  g_env->host_name, g_env->count_send, g_env->count_revc, g_env->count_packets_dup,
+				  loss, finish, g_env->min, g_env->max);
+	}
+	else
+	{
+		ft_printf("\n--- %s ping statistics ---\n%ld packets transmitted, %ld recieved, "
+				  "%.0f%% packet loss, time %.fms\nrtt min/max = %.3f/%.3f\n",
+				  g_env->host_name, g_env->count_send, g_env->count_revc,
+				  loss, finish, g_env->min, g_env->max);;
+	}
 }
 
 void	ft_hendling_int(int sig)
@@ -34,6 +44,7 @@ void	ft_hendling_int(int sig)
 		return ;
 	ft_print_statistics();
 	close(g_env->sock);
+	ft_strdel(&g_env->recv_name_buff);
 	exit(EXIT_SUCCESS);
 }
 

@@ -24,16 +24,16 @@ OBG =   main.o \
 
 all: $(NAME)
 
-$(NAME): $(OBJ)
+$(NAME): $(OBG)
 	@make -C libft/
-	$(G) $(FLAGS) -o $@ $(OBJ) $(LIBFT)
+	@$(G) $(FLAGS) -o $@ $(OBG) $(LIBFT)
 
 %.o: %.c
 	$(G) -c $< -o $@
 
 clean:
 	@make -C libft/ clean
-	@rm -f $(OBJ)
+	@rm -f $(OBG)
 
 
 fclean: clean

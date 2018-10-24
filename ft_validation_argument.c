@@ -10,8 +10,6 @@ static int	ft_get_flag(char *str)
 		return (FLAG_IPV6);
 	else if (!ft_strcmp(str, "-c"))
 		return (FLAG_C);
-	else if (!ft_strcmp(str, "-n"))
-		return (FLAG_N);
 	else if (!ft_strcmp(str, "-i"))
 		return (FLAG_I);
 	else if (!ft_strcmp(str, "-b"))
@@ -21,14 +19,11 @@ static int	ft_get_flag(char *str)
 }
 static void ft_check_broadcast_address(char *adrr, long flag)
 {
-	if (!(flag & FLAG_B))
-	{
-		if (!ft_strncmprev(adrr, BROADCAST_ADDR, ft_strlen(BROADCAST_ADDR)))
+	if (!ft_strncmprev(adrr, BROADCAST_ADDR, ft_strlen(BROADCAST_ADDR)) && !(flag & FLAG_B))
 			ft_error("Do you want to ping broadcast? "
 				 "Then -b. If not, check your local firewall rules.");
-		else
-			ft_putendl("Not broadcast.");
-	}
+	if (flag & FLAG_B && ft_strncmprev(adrr, BROADCAST_ADDR, ft_strlen(BROADCAST_ADDR)))
+		ft_error("Not broadcast.");
 }
 
 char		*ft_validarg(int cout, char **av, long *flag)

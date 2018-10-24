@@ -1,6 +1,6 @@
 #include "ft_ping.h"
 
-static void	ft_show_recvmsg_ipv6(char *buff, struct msghdr *msg, struct timeval *time, ssize_t size)
+static void	ft_show_recvmsg_ipv6(char *buff, struct timeval *time, ssize_t size)
 {
 	struct icmp6_hdr	*frame;
 	struct timeval		*time_send;
@@ -22,13 +22,11 @@ static void	ft_show_recvmsg_ipv6(char *buff, struct msghdr *msg, struct timeval 
 		else if (rtt > g_env->max)
 			g_env->max = rtt;
 		ft_printf("%d bytes from %s (%s): icmp_seq=%d  time=%.3f ms\n",
-			size, g_env->host_name, ft_hostaddrtostr(g_env->addr, g_env->salen), frame->icmp6_seq, rtt);
-
+			size, g_env->host_name, g_env->host_addr, frame->icmp6_seq, rtt);
 	}
 	else if (g_env->flag & FLAG_V)
 		ft_printf(" %d bytes from %s (%s): type = %d, code = %d\n",
-				  size, g_env->host_name, ft_hostaddrtostr(g_env->addr, g_env->salen),
-				  frame->icmp6_type, frame->icmp6_code);
+				  size, g_env->host_name, g_env->host_addr, frame->icmp6_type, frame->icmp6_code);
 
 }
 
@@ -54,27 +52,26 @@ static void	ft_show_recvmsg_ipv4(char *buff, struct msghdr *msg, struct timeval 
 		time_send = (struct timeval*)frame->icmp_data;
 		ft_get_time_sub(time, time_send);
 		rtt = time->tv_sec * 1000.0 + time->tv_usec / 1000.0;
-		g_env->count_revc++;
+		frame->icmp_seq == g_env->seq ? g_env->count_packets_dup++ : g_env->count_revc++;
 		if (rtt < g_env->min || g_env->min == 0.0000)
 			g_env->min = rtt;
 		else if (rtt > g_env->max)
 			g_env->max = rtt;
-		ft_printf("%d bytes from %s (%s): icmp_seq=%llu ttl=%d time=%.3f ms\n",
-				  size, g_env->host_name, ft_hostaddrtostr(g_env->addr, g_env->salen),
+		if (g_env->flag & FLAG_B && frame->icmp_seq == g_env->seq)
+		{
+			ft_printf("%d bytes from %s (%s): icmp_seq=%llu ttl=%d time=%.3f ms (DUP!)\n",
+					  size, g_env->host_name, g_env->host_addr,
+					  frame->icmp_seq, addr->ip_ttl, rtt);
+		}
+		else
+			ft_printf("%d bytes from %s (%s): icmp_seq=%llu ttl=%d time=%.3f ms\n",
+				  size, g_env->host_name, g_env->host_addr,
 				frame->icmp_seq, addr->ip_ttl, rtt);
+		g_env->flag & FLAG_B ? g_env->seq = frame->icmp_seq : 0;
 	}
 	else if (g_env->flag & FLAG_V)
-		ft_printf(" %d bytes from %s (%s): type = %d, code = %d\n",
-				  size, g_env->host_name, ft_hostaddrtostr(g_env->addr, g_env->salen),
-                frame->icmp_type, frame->icmp_code);
-}
-
-static void	ft_show_recvmsg(char *buff, struct msghdr *msg, struct timeval *time, ssize_t size)
-{
-	if (g_env->flag & FLAG_IPV6)
-		ft_show_recvmsg_ipv6(buff, msg, time, size);
-	else
-		ft_show_recvmsg_ipv4(buff, msg, time, size);
+		ft_printf("%d bytes from %s (%s): type = %d, code = %d\n",
+				  size, g_env->host_name, g_env->host_addr, frame->icmp_type, frame->icmp_code);
 }
 
 void	ft_loop_recvfrom(ssize_t size)
@@ -101,6 +98,9 @@ void	ft_loop_recvfrom(ssize_t size)
 			ft_error("Error: recving sock_ntop_host.");
 		if (gettimeofday(&time_now, NULL) == -1)
 			ft_error("Error: geting time of day.");
-		ft_show_recvmsg(buff, &msg, &time_now, size);
+		if (g_env->flag & FLAG_IPV6)
+			ft_show_recvmsg_ipv6(buff, &time_now, size);
+		else
+			ft_show_recvmsg_ipv4(buff, &msg, &time_now, size);
 	}
 }

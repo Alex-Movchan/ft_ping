@@ -40,6 +40,29 @@ static void				ft_check_ip_version(struct addrinfo	*host_addrinfo)
 	}
 }
 
+static void				ft_hostaddrtostr(struct sockaddr *sa, socklen_t len)
+{
+	struct sockaddr_in6	*sin6;
+	struct sockaddr_in	*sin;
+
+	ft_bzero(g_env->host_addr, HOST_ADDR_SIZE);
+	if (sa->sa_family == AF_INET)
+	{
+		sin = (struct sockaddr_in*)sa;
+		if (!inet_ntop(AF_INET, &sin->sin_addr, g_env->host_addr, sizeof(g_env->host_addr)))
+			ft_error("Error: inet_ntop failed.");
+	}
+	else if (sa->sa_family == AF_INET6)
+	{
+		sin6 = (struct sockaddr_in6 *) sa;
+		if (!inet_ntop(AF_INET6, &sin6->sin6_addr, g_env->host_addr, sizeof(g_env->host_addr)))
+			ft_error("Error: inet_ntop failed.");
+	}
+	else
+		ft_error("Error: socaddr family unknow.");
+
+}
+
 static void				ft_init_environment(int ac, char **av)
 {
 	struct addrinfo	*host_addrinfo;
@@ -53,14 +76,17 @@ static void				ft_init_environment(int ac, char **av)
 	ft_check_ip_version(host_addrinfo);
 	if (!(g_env->recv_name_buff = ft_strnew(host_addrinfo->ai_addrlen)))
 		ft_error("Error:memory allocate");
-	g_env->sock = ft_create_socket(host_addrinfo->ai_family);
-	g_env->pid = getpid() & 0xFFFF;
 	g_env->addr = host_addrinfo->ai_addr;
 	g_env->salen = host_addrinfo->ai_addrlen;
+	ft_hostaddrtostr(g_env->addr, g_env->salen);
+	g_env->sock = ft_create_socket(host_addrinfo->ai_family);
+	g_env->pid = getpid() & 0xFFFF;
 	g_env->count_send = 0;
 	g_env->count_revc = 0;
-	//g_env->send_buf =  ft_strnew(DUFF_SIZE) : ft_strnew(DUFF_SIZE);//add size buf?
+	g_env->seq = 0;
+	g_env->count_packets_dup = 0;
 }
+
 
 int						main(int ac, char **av)
 {
@@ -69,7 +95,7 @@ int						main(int ac, char **av)
 	ft_init_environment(ac, av);
 	signal(SIGALRM, ft_hendling_alrm);
 	signal(SIGINT, ft_hendling_int);
-	ft_printf("PING %s (%s): %d data bytes\n", g_env->host_name, ft_hostaddrtostr(g_env->addr, g_env->salen), DATA_LEN);
+	ft_printf("PING %s (%s): %d data bytes\n", g_env->host_name, g_env->host_addr, DATA_LEN);
 	ft_loop_recvfrom(0);
 	return (0);
 }
