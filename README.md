@@ -1,2 +1,3 @@
 # ft_ping
-need fix bug with makefile 
+-6 -ipv6
+-b broadcast
