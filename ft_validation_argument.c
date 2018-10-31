@@ -43,7 +43,7 @@ char		*ft_validarg(int cout, char **av, long *flag)
 			(*flag) |= (arg = ft_get_flag(av[i]));
 			if (FLAG_C == arg)
 			{
-				if (++i > cout || !ft_isdigit(av[i][0]))
+				if (++i > cout || !ft_isdigit(av[i][0]) || av[i][0] == '0')
 					ft_error("Error: bad number of packets to transmit.");
 				g_env->count_packets = ft_atoi(av[i]) + 1;
 				continue ;
@@ -52,7 +52,8 @@ char		*ft_validarg(int cout, char **av, long *flag)
 			{
 				if (++i > cout || !ft_isdigit(av[i][0]))
 					ft_error("Error: bad number of interval to transmit.");
-				g_env->interval = (unsigned int)ft_atoi(av[i]);
+				if (!(g_env->interval = (unsigned int)ft_atoi(av[i])))
+					ft_error("Error: bad number of interval to transmit.");
 				continue ;
 			}
 		}
