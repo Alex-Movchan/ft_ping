@@ -11,18 +11,22 @@ static void	ft_show_recvmsg_ipv6(char *buff, struct timeval *time, ssize_t size)
 		return ;
 	if (frame->icmp6_type == ICMP6_ECHO_REPLY)
 	{
-		if (frame->icmp6_id != g_env->pid || size < 16)
+		if (frame->icmp6_id != g_env->pid)
 			return ;
 		g_env->count_revc++;
-		time_send = (struct timeval*)(frame + 1);
-		ft_get_time_sub(time, time_send);
-		rtt = time->tv_sec * 1000.0 + time->tv_usec / 1000.0;
-		if (rtt < g_env->min || g_env->min == 0.0000)
-			g_env->min = rtt;
-		else if (rtt > g_env->max)
-			g_env->max = rtt;
-		ft_printf("%d bytes from %s (%s): icmp_seq=%d  time=%.3f ms\n",
-			size, g_env->host_name, g_env->host_addr, frame->icmp6_seq, rtt);
+		if (size >= 16 && g_env->send_size > HEADER_LEN_IPV4_ICMP)
+		{
+			time_send = (struct timeval *) (frame + 1);
+			ft_get_time_sub(time, time_send);
+			rtt = time->tv_sec * 1000.0 + time->tv_usec / 1000.0;
+			if (rtt < g_env->min || g_env->min == 0.0000)
+				g_env->min = rtt;
+			else if (rtt > g_env->max)
+				g_env->max = rtt;
+		}
+		ft_printf("%d bytes from %s (%s): icmp_seq=%d  ",
+			size, g_env->host_name, g_env->host_addr, frame->icmp6_seq);
+		g_env->send_size > HEADER_LEN_IPV4_ICMP ? ft_printf("time=%.3f ms\n", rtt) : ft_printf("\n");
 	}
 	else if (g_env->flag & FLAG_V)
 		ft_printf(" %d bytes from %s (%s): type = %d, code = %d\n",
@@ -47,27 +51,53 @@ static void	ft_show_recvmsg_ipv4(char *buff, struct msghdr *msg, struct timeval 
 		return ;
 	if (frame->icmp_type == ICMP_ECHOREPLY)
 	{
-		if (frame->icmp_id != g_env->pid || icmp_len < 16)
+		if (frame->icmp_id != g_env->pid)
 			return;
-		time_send = (struct timeval*)frame->icmp_data;
-		ft_get_time_sub(time, time_send);
-		rtt = time->tv_sec * 1000.0 + time->tv_usec / 1000.0;
-		frame->icmp_seq == g_env->seq ? g_env->count_packets_dup++ : g_env->count_revc++;
-		if (rtt < g_env->min || g_env->min == 0.0000)
-			g_env->min = rtt;
-		else if (rtt > g_env->max)
-			g_env->max = rtt;
-		if (g_env->flag & FLAG_B && frame->icmp_seq == g_env->seq)
+		if ( icmp_len >= 16 && g_env->send_size > HEADER_LEN_IPV4_ICMP)
 		{
-			ft_printf("%d bytes from %s (%s): icmp_seq=%llu ttl=%d time=%.3f ms (DUP!)\n",
-					  size, g_env->host_name, g_env->host_addr,
-					  frame->icmp_seq, addr->ip_ttl, rtt);
+			time_send = (struct timeval*)frame->icmp_data;
+			ft_get_time_sub(time, time_send);
+			rtt = time->tv_sec * 1000.0 + time->tv_usec / 1000.0;
+			if (rtt < g_env->min || g_env->min == 0.0000)
+				g_env->min = rtt;
+			else if (rtt > g_env->max)
+				g_env->max = rtt;
+		}
+		frame->icmp_seq <= g_env->seq ? g_env->count_packets_dup++ : g_env->count_revc++;
+
+		if (g_env->flag & FLAG_T && addr->ip_ttl > g_env->max_ttl)
+		{
+			if (g_env->flag & FLAG_B && frame->icmp_seq <= g_env->seq)
+			{
+				ft_printf("%d bytes from %s (%s): icmp_seq=%llu Time to live exceeded (DUP!)\n",
+						  size - HEADER_LEN_ICMP, g_env->host_name, g_env->host_addr,
+						  frame->icmp_seq);
+			}
+			else
+				ft_printf("%d bytes from %s (%s): icmp_seq=%llu Time to live exceeded\n",
+						  size - HEADER_LEN_ICMP, g_env->host_name, g_env->host_addr,
+						  frame->icmp_seq);
 		}
 		else
-			ft_printf("%d bytes from %s (%s): icmp_seq=%llu ttl=%d time=%.3f ms\n",
-				  size, g_env->host_name, g_env->host_addr,
-				frame->icmp_seq, addr->ip_ttl, rtt);
-		g_env->flag & FLAG_B ? g_env->seq = frame->icmp_seq : 0;
+		{
+			if (g_env->flag & FLAG_B && frame->icmp_seq <= g_env->seq)
+			{
+				ft_printf("%d bytes from %s (%s): icmp_seq=%llu ttl=%d ",
+						  size - HEADER_LEN_ICMP, g_env->host_name, g_env->host_addr,
+						  frame->icmp_seq, addr->ip_ttl);
+				g_env->send_size > HEADER_LEN_IPV4_ICMP ? ft_printf("time=%.3f ms(DUP!)\n", rtt) : ft_printf("\n");
+
+			}
+			else
+			{
+				ft_printf("%d bytes from %s (%s): icmp_seq=%llu ttl=%d ",
+						  size - HEADER_LEN_ICMP, g_env->host_name, g_env->host_addr,
+						  frame->icmp_seq, addr->ip_ttl);
+				g_env->send_size > HEADER_LEN_IPV4_ICMP ? ft_printf("time=%.3f ms\n", rtt) : ft_printf("\n");
+			}
+		}
+		if (g_env->flag & FLAG_B)
+			g_env->seq =  g_env->seq > frame->icmp_seq ? g_env->seq : frame->icmp_seq;
 	}
 	else if (g_env->flag & FLAG_V)
 		ft_printf("%d bytes from %s (%s): type = %d, code = %d\n",

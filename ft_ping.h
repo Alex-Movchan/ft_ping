@@ -23,12 +23,18 @@
 #define FLAG_C (1 << 2)
 #define FLAG_I (1 << 3)
 #define FLAG_IPV6 (1 << 4)
+#define FLAG_T (1 << 5)
+#define FLAG_S (1 << 6)
 #define SOCK_UNKNOW 0
 #define BROADCAST_ADDR ".255"
-#define SIZE_BUFF 1500
-#define DATA_LEN 56
+#define SIZE_BUFF 4096
+#define DEFAULT_DATA_LEN 56
+#define HEADER_LEN_ICMP 20
+#define HEADER_LEN_IP 8
+#define HEADER_LEN_IPV4_ICMP HEADER_LEN_IP + HEADER_LEN_ICMP
 #define HOST_ADDR_SIZE 128
 #define STATUS_ERROR -1
+#define MAX_TTL 255
 #define SOCKET_SIZE 64 * 1024;
 #define IP_HEADER_LEN(n) ((n) << 2)
 
@@ -46,8 +52,10 @@ typedef struct		s_env
 	double			max;
 	socklen_t		salen;
 	pid_t			pid;
-	unsigned int	interval;
+	ssize_t			send_size;
+	int				interval;
 	int				sock;
+	int				max_ttl;
 	int				count_packets;
 	int				count_packets_dup;
 	int				seq;

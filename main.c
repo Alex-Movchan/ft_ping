@@ -70,6 +70,8 @@ static void				ft_init_environment(int ac, char **av)
 	if (!(g_env = (env_t*)malloc(sizeof(env_t))))
 		ft_error("Error:memory allocate");
 	g_env->interval = 1;
+	g_env->max_ttl = MAX_TTL;
+	g_env->send_size = DEFAULT_DATA_LEN;
 	if (!(g_env->host_name = ft_validarg(ac, av, &g_env->flag)))
 		ft_usage();
 	host_addrinfo = ft_get_host_addrinfo(g_env->host_name);
@@ -90,12 +92,13 @@ static void				ft_init_environment(int ac, char **av)
 
 int						main(int ac, char **av)
 {
-	if (getuid() != 0)
-		ft_error("Error: permission denied");
+//	if (getuid() != 0)
+//		ft_error("Error: permission denied");
 	ft_init_environment(ac, av);
 	signal(SIGALRM, ft_hendling_alrm);
 	signal(SIGINT, ft_hendling_int);
-	ft_printf("PING %s (%s): %d data bytes\n", g_env->host_name, g_env->host_addr, DATA_LEN);
+	g_env->flag & FLAG_IPV6 ? ft_printf("PING %s (%s): %d data bytes\n", g_env->host_name, g_env->host_addr,  g_env->send_size) :
+	ft_printf("PING %s (%s): %d(%d) data bytes\n", g_env->host_name, g_env->host_addr, g_env->send_size, HEADER_LEN_IPV4_ICMP + g_env->send_size);
 	ft_loop_recvfrom(0);
 	return (0);
 }

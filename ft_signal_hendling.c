@@ -25,16 +25,19 @@ static void	ft_print_statistics(void)
 	if (g_env->flag & FLAG_B)
 	{
 		ft_printf("\n--- %s ping statistics ---\n%ld packets transmitted, %ld recieved, +%ld duplicates, "
-				  "%.0f%% packet loss, time %.fms\nrtt min/max = %.3f/%.3f\n",
+				  "%.0f%% packet loss, time %.fms\n",
 				  g_env->host_name, g_env->count_send, g_env->count_revc, g_env->count_packets_dup,
-				  loss, finish, g_env->min, g_env->max);
+				  loss, finish);
+		g_env->send_size > HEADER_LEN_IPV4_ICMP ? ft_printf("rtt min/max = %.3f/%.3f\n", g_env->min, g_env->max) : ft_printf("\n");
 	}
 	else
 	{
 		ft_printf("\n--- %s ping statistics ---\n%ld packets transmitted, %ld recieved, "
-				  "%.0f%% packet loss, time %.fms\nrtt min/max = %.3f/%.3f\n",
+				  "%.0f%% packet loss, time %.fms\n",
 				  g_env->host_name, g_env->count_send, g_env->count_revc,
-				  loss, finish, g_env->min, g_env->max);;
+				  loss, finish);;
+		g_env->send_size > HEADER_LEN_IPV4_ICMP ? ft_printf("rtt min/max = %.3f/%.3f\n", g_env->min, g_env->max) : ft_printf("\n");
+
 	}
 }
 
@@ -52,6 +55,8 @@ void	ft_hendling_alrm(int sig)
 {
 	if (sig != SIGALRM)
 		return ;
+	if (g_env->flag & FLAG_C && g_env->count_send + 1 == g_env->count_packets && --g_env->count_send)
+		ft_hendling_int(SIGINT);
 	g_env->flag & FLAG_IPV6 ? ft_sendto_ipv6() :ft_sendto_ipv4();
 	alarm(g_env->interval);
 }

@@ -31,19 +31,18 @@ void			ft_sendto_ipv4(void)
 	struct icmp	*frame;
 	size_t		data_len;
 
-	data_len = DATA_LEN + 8;
+	data_len =  g_env->send_size + HEADER_LEN_IP;
+	//data_len = data_len > HEADER_LEN_IPV4_ICMP ? data_len : HEADER_LEN_IPV4_ICMP;
 	frame = (struct icmp*)buff;
 	frame->icmp_type = ICMP_ECHO;
 	frame->icmp_code = 0;
 	frame->icmp_id  =  g_env->pid;
 	frame->icmp_seq = ++g_env->count_send;
-	if (g_env->flag & FLAG_C && g_env->count_send == g_env->count_packets && --g_env->count_send)
-		ft_hendling_int(SIGINT);
 	if (gettimeofday((struct timeval *)frame->icmp_data, NULL) == -1)
 		ft_error("Error: geting time of day.");
 	frame->icmp_cksum = 0;
 	frame->icmp_cksum = ft_get_checksum((uint16_t*)frame, data_len);
-	if (sendto(g_env->sock, buff, data_len, 0,
+	if ( sendto(g_env->sock, buff, data_len, 0,
 			g_env->addr, g_env->salen) < 0)
 		ft_error("Error: sendto.");
 }
@@ -59,12 +58,10 @@ void			ft_sendto_ipv6(void)
 	frame->icmp6_code = 0;
 	frame->icmp6_id = g_env->pid;
 	frame->icmp6_seq = ++g_env->count_send;
-	if (g_env->flag & FLAG_C && g_env->count_send == g_env->count_packets && --g_env->count_send)
-		ft_hendling_int(SIGINT);
-	ft_memset((frame + 1), 0xa5, DATA_LEN);
+	data_len =  g_env->send_size + HEADER_LEN_IP;
+	ft_memset((frame + 1), 0xa5, data_len);
 	if (gettimeofday((struct timeval *)(frame + 1), NULL) == -1)
-		ft_error("Error: geting time of day.");
-	data_len = 8 + DATA_LEN;
+			ft_error("Error: geting time of day.");
 	if (sendto(g_env->sock, buff, data_len, 0,
 			   g_env->addr, g_env->salen) == STATUS_ERROR)
 		ft_error("Error: sendto.");
