@@ -71,6 +71,8 @@ char		*ft_validarg(int cout, char **av, long *flag)
 		else
 			host_name = av[i];
 	}
+	if (!host_name)
+		ft_error("Error: bad host name.");
 	FLAG_T & (*flag) ? ft_printf("Max_ttl = %d\n", g_env->max_ttl) : 0;
 	ft_check_broadcast_address(host_name, (*flag));
 	return (host_name);
