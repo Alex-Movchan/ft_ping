@@ -24,11 +24,11 @@ static int	ft_get_flag(char *str)
 }
 static void ft_check_broadcast_address(char *adrr, long flag)
 {
-	if (!ft_strncmprev(adrr, BROADCAST_ADDR, ft_strlen(BROADCAST_ADDR)) && !(flag & FLAG_B))
-			ft_error("Do you want to ping broadcast? "
-				 "Then -b. If not, check your local firewall rules.");
-	if (flag & FLAG_B && ft_strncmprev(adrr, BROADCAST_ADDR, ft_strlen(BROADCAST_ADDR)))
-		ft_error("Not broadcast.");
+//	if (!ft_strncmprev(adrr, BROADCAST_ADDR, ft_strlen(BROADCAST_ADDR)) && !(flag & FLAG_B))
+//			ft_error("Do you want to ping broadcast? "
+//				 "Then -b. If not, check your local firewall rules.");
+//	if (flag & FLAG_B && ft_strncmprev(adrr, BROADCAST_ADDR, ft_strlen(BROADCAST_ADDR)))
+//		ft_error("Not broadcast.");
 }
 
 static int	get_velue(char *str)
@@ -59,13 +59,13 @@ char		*ft_validarg(int cout, char **av, long *flag)
 		if (av[i][0] == '-')
 		{
 			(*flag) |= (arg = ft_get_flag(av[i]));
-			if (FLAG_C == arg && (g_env->count_packets = get_velue(av[++i]) + 1) < 0)
+			if (FLAG_C == arg && (g_env->count_packets = get_velue(av[++i])) < 1)
 				ft_error("Error: bad number of packets to transmit.");
-			else if (FLAG_I == arg && (g_env->interval = get_velue(av[++i]) < 1))
+			else if (FLAG_I == arg && (g_env->interval = get_velue(av[++i])) < 1)
 					ft_error("Error: bad number of interval to transmit.");
-			else if (FLAG_T == arg && ((0 > (g_env->max_ttl = get_velue(av[++i]))) || g_env->max_ttl > MAX_TTL))
+			else if (FLAG_T == arg && (0 > (g_env->max_ttl = get_velue(av[++i])) || g_env->max_ttl > MAX_TTL))
 				ft_error("Error: bad number of max ttl to transmit.");
-			else if (FLAG_S == arg && ((0 > (g_env->send_size = get_velue(av[++i]))) || g_env->send_size > SIZE_BUFF))
+			else if (FLAG_S == arg && (0 > (g_env->send_size = get_velue(av[++i])) || g_env->send_size > SIZE_BUFF))
 				ft_error("Error: bad number of packet size to transmit.");
 		}
 		else

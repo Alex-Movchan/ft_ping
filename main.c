@@ -86,14 +86,15 @@ static void				ft_init_environment(int ac, char **av)
 	g_env->count_send = 0;
 	g_env->count_revc = 0;
 	g_env->seq = 0;
+	g_env->sum = 0.0;
 	g_env->count_packets_dup = 0;
 }
 
 
 int						main(int ac, char **av)
 {
-//	if (getuid() != 0)
-//		ft_error("Error: permission denied");
+	if (getuid() != 0)
+		ft_error("Error: permission denied");
 	ft_init_environment(ac, av);
 	signal(SIGALRM, ft_hendling_alrm);
 	signal(SIGINT, ft_hendling_int);

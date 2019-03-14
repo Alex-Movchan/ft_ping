@@ -50,6 +50,7 @@ typedef struct		s_env
 	long			flag;
 	double			min;
 	double			max;
+	double			sum;
 	socklen_t		salen;
 	pid_t			pid;
 	ssize_t			send_size;

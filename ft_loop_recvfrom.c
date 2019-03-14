@@ -21,8 +21,9 @@ static void	ft_show_recvmsg_ipv6(char *buff, struct timeval *time, ssize_t size)
 			rtt = time->tv_sec * 1000.0 + time->tv_usec / 1000.0;
 			if (rtt < g_env->min || g_env->min == 0.0000)
 				g_env->min = rtt;
-			else if (rtt > g_env->max)
+			if (rtt > g_env->max)
 				g_env->max = rtt;
+			g_env->sum += rtt;
 		}
 		ft_printf("%d bytes from %s (%s): icmp_seq=%d  ",
 			size, g_env->host_name, g_env->host_addr, frame->icmp6_seq);
@@ -60,8 +61,9 @@ static void	ft_show_recvmsg_ipv4(char *buff, struct msghdr *msg, struct timeval 
 			rtt = time->tv_sec * 1000.0 + time->tv_usec / 1000.0;
 			if (rtt < g_env->min || g_env->min == 0.0000)
 				g_env->min = rtt;
-			else if (rtt > g_env->max)
+			if (rtt > g_env->max)
 				g_env->max = rtt;
+			g_env->sum += rtt;
 		}
 		frame->icmp_seq <= g_env->seq ? g_env->count_packets_dup++ : g_env->count_revc++;
 
